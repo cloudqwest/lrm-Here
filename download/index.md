@@ -2,7 +2,7 @@
 layout: default
 ---
 
-[Leaflet Routing Machine / GraphHopper](https://github.com/perliedman/lrm-graphhopper)
+[Leaflet Routing Machine / Here](https://github.com/trailbehind/lrm-Here)
 ================================
 
 Download prebuilt files:
@@ -10,11 +10,11 @@ Download prebuilt files:
 <ul>
 {% for version in site.data.versions reversed %}
   <li>
-    <a href="{{site.baseurl}}/dist/lrm-graphhopper-{{ version.version }}.js">
-      lrm-graphhopper-{{ version.version }}.js
+    <a href="{{site.baseurl}}/dist/lrm-here-{{ version.version }}.js">
+      lrm-here-{{ version.version }}.js
     </a>
-    (<a href="{{site.baseurl}}/dist/lrm-graphhopper-{{ version.version }}.min.js">
-      lrm-graphhopper-{{ version.version }}.min.js
+    (<a href="{{site.baseurl}}/dist/lrm-here-{{ version.version }}.min.js">
+      lrm-here-{{ version.version }}.min.js
     </a>)
   </li>
 {% endfor %}
@@ -29,5 +29,5 @@ Or, to use with for example Browserify:
 npm install --save lrm-graphhopper
 ```
 
-See the [lrm-graphhopper project page](https://github.com/perliedman/lrm-graphhopper) for info 
+See the [lrm-here project page](https://github.com/trailbehind/lrm-Here) for info 
 and docs on using the plugin.
