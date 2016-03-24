@@ -5,11 +5,7 @@ ORIGIN=`git remote -v|grep origin|head -n1|cut -f2|cut -d" " -f1`
 TMP=/tmp/.gh-pages-update
 CWD=`pwd`
 
-echo Building dist files for $VERSION...
-mkdir -p dist
-browserify -t browserify-shim src/L.Routing.Here.js >dist/lrm-here.js
-uglifyjs dist/lrm-here.js >dist/lrm-here.min.js
-echo Done.
+./scripts/dist.sh
 
 echo Updating dist files on gh-pages...
 rm -rf $TMP
@@ -21,8 +17,8 @@ git rebase origin/gh-pages
 
 mkdir -p dist
 mkdir -p _data
-cp -a $CWD/dist/lrm-graphhopper.js dist/lrm-graphhopper-$VERSION.js
-cp -a $CWD/dist/lrm-graphhopper.min.js dist/lrm-graphhopper-$VERSION.min.js
+cp -a $CWD/dist/lrm-here.js dist/lrm-here-$VERSION.js
+cp -a $CWD/dist/lrm-here.min.js dist/lrm-here-$VERSION.min.js
 echo -e "- version: $VERSION\n" >>_data/versions.yml
 
 echo `pwd`

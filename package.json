@@ -1,29 +1,28 @@
 {
-  "name": "lrm-graphhopper",
-  "version": "1.0.2",
-  "description": "Support for GraphHopper in Leaflet Routing Machine",
-  "main": "src/L.Routing.GraphHopper.js",
+  "name": "lrm-here",
+  "version": "1.0.0",
+  "description": "Support for here in Leaflet Routing Machine",
+  "main": "src/L.Routing.Here.js",
   "scripts": {
     "dist": "./scripts/dist.sh",
+    "publish": "./scripts/publish.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "leaflet",
-    "routing",
-    "graphhopper"
+    "routing"
   ],
-  "author": "Per Liedman <per@liedman.net>",
+  "author": "Jesse Crocker <jesse@gaiagps.com>",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/perliedman/lrm-graphhopper.git"
+    "url": "https://github.com/trailbehind/lrm-here.git"
   },
-  "homepage": "https://github.com/perliedman/lrm-graphhopper",
-  "bugs": "https://github.com/perliedman/lrm-graphhopper/issues",
+  "homepage": "https://github.com/trailbehind/lrm-here",
+  "bugs": "https://github.com/trailbehind/lrm-here/issues",
   "dependencies": {
     "corslite": "0.0.6",
-    "leaflet": "^0.7.3",
-    "polyline": "0.0.3"
+    "leaflet": "^0.7.3"
   },
   "browserify-shim": {
     "leaflet": "global:L"
