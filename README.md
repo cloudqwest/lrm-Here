@@ -8,7 +8,7 @@ Some brief instructions follow below, but the [Leaflet Routing Machine tutorial 
 
 ## Installing
 
-Go to the [download page](http://www.liedman.net/lrm-graphhopper/download/) to get the script to include in your page. Put the script after Leaflet and Leaflet Routing Machine has been loaded.
+Go to the [download page](http://trailbehind.github.io/lrm-Here/download/) to get the script to include in your page. Put the script after Leaflet and Leaflet Routing Machine has been loaded.
 
 To use with for example Browserify:
 
