@@ -72,7 +72,8 @@
 
 		_routeDone: function(response, inputWaypoints, callback, context) {
 			var alts = [],
-			    mappedWaypoints,
+			    waypoints,
+			    waypoint,
 			    coordinates,
 			    i, j, k,
 			    instructions,
@@ -80,6 +81,8 @@
 			    time,
 			    leg,
 			    maneuver,
+			    startingSearchIndex,
+			    instruction,
 			    path;
 
 			context = context || callback;
@@ -94,9 +97,8 @@
 
 			for (i = 0; i < response.response.route.length; i++) {
 				path = response.response.route[i];
-				coordinates = this._decodeGeomertry(path.shape);
-	//			mappedWaypoints =
-	//				this._mapWaypointIndices(inputWaypoints, path.instructions, coordinates);
+				coordinates = this._decodeGeometry(path.shape);
+				startingSearchIndex = 0;
 
 				instructions = [];
 				time = 0;
@@ -107,8 +109,18 @@
 						maneuver = leg.maneuver[k];
 						distance += maneuver.length;
 						time += maneuver.travelTime;
-						instructions.push(this._convertInstruction(maneuver));
+						instruction = this._convertInstruction(maneuver, coordinates, startingSearchIndex);
+						instructions.push(instruction);
+						startingSearchIndex = instruction.index;
 					}
+				}
+
+				waypoints = [];
+				for(j = 0; j < path.waypoint.length; j++) {
+					waypoint = path.waypoint[j];
+					waypoints.push(new L.LatLng(
+						waypoint.mappedPosition.latitude, 
+						waypoint.mappedPosition.longitude));
 				}
 
 				alts.push({
@@ -119,16 +131,15 @@
 						totalDistance: distance,
 						totalTime: time,
 					},
-					inputWaypoints: inputWaypoints
-					// actualWaypoints: mappedWaypoints.waypoints,
-					// waypointIndices: mappedWaypoints.waypointIndices
+					inputWaypoints: inputWaypoints,
+					waypoints: waypoints
 				});
 			}
 
 			callback.call(context, null, alts);
 		},
 
-		_decodeGeomertry: function(geometry) {
+		_decodeGeometry: function(geometry) {
 			var latlngs = new Array(geometry.length),
 				coord,
 				i;
@@ -161,11 +172,28 @@
 				}, this.options.urlParameters), baseUrl);
 		},
 
-		_convertInstruction: function(instruction) {
+		_convertInstruction: function(instruction, coordinates, startingSearchIndex) {
+			var i,
+			distance,
+			closestDistance = 0,
+			closestIndex = -1,
+			coordinate = new L.LatLng(instruction.position.latitude,
+				instruction.position.longitude);
+			if(startingSearchIndex < 0) {
+				startingSearchIndex = 0;
+			}
+			for(i = startingSearchIndex; i < coordinates.length; i++) {
+				distance = coordinate.distanceTo(coordinates[i]);
+				if(distance < closestDistance || closestIndex == -1) {
+					closestDistance = distance;
+					closestIndex = i;
+				}
+			}
 			return {
 				text: instruction.instruction,//text,
 				distance: instruction.length,
-				time: instruction.travelTime
+				time: instruction.travelTime,
+				index: closestIndex
 				/*
 				type: instruction.action,
 				road: instruction.roadName,
