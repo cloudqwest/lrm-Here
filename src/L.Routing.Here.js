@@ -3,6 +3,7 @@
 
 	var L = require('leaflet');
 	var corslite = require('corslite');
+	var haversine = require('haversine');
 
 	L.Routing = L.Routing || {};
 
@@ -147,7 +148,7 @@
 				i;
 			for (i = 0; i < geometry.length; i++) {
 				coord = geometry[i].split(",");
-				latlngs[i] = new L.LatLng(coord[0], coord[1]);
+				latlngs[i] = ([parseFloat(coord[0]), parseFloat(coord[1])]);
 			}
 
 			return latlngs;
@@ -185,13 +186,12 @@
 			distance,
 			closestDistance = 0,
 			closestIndex = -1,
-			coordinate = new L.LatLng(instruction.position.latitude,
-				instruction.position.longitude);
+			coordinate = instruction.position;
 			if(startingSearchIndex < 0) {
 				startingSearchIndex = 0;
 			}
 			for(i = startingSearchIndex; i < coordinates.length; i++) {
-				distance = coordinate.distanceTo(coordinates[i]);
+				distance = haversine(coordinate, {latitude:coordinates[0], longitude:coordinates[1]});
 				if(distance < closestDistance || closestIndex == -1) {
 					closestDistance = distance;
 					closestIndex = i;

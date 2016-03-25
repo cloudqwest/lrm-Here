@@ -22,7 +22,8 @@
   "bugs": "https://github.com/trailbehind/lrm-here/issues",
   "dependencies": {
     "corslite": "0.0.6",
-    "leaflet": "^0.7.3"
+    "leaflet": "^0.7.3",
+    "haversine": "^1.0.0"
   },
   "browserify-shim": {
     "leaflet": "global:L"
