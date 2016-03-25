@@ -10,6 +10,8 @@
 		options: {
 			serviceUrl: 'https://route.cit.api.here.com/routing/7.2/calculateroute.json',
 			timeout: 30 * 1000,
+			alternatives: 0,
+			mode: 'fastest;car',
 			urlParameters: {}
 		},
 
@@ -154,12 +156,18 @@
 		buildRouteUrl: function(waypoints, options) {
 			var locs = [],
 				i,
+				alternatives,
 				baseUrl;
 			
 			for (i = 0; i < waypoints.length; i++) {
 				locs.push('waypoint' + i + '=geo!' + waypoints[i].latLng.lat + ',' + waypoints[i].latLng.lng);
 			}
-
+			if(waypoints.length > 2) {
+				alternatives = 0;
+			} else {
+				//With more than 1 waypoint, requests for alternatives are invalid
+				alternatives = this.options.alternatives;
+			}
 			baseUrl = this.options.serviceUrl + '?' + locs.join('&');
 
 			return baseUrl + L.Util.getParamString(L.extend({
@@ -167,8 +175,8 @@
 					app_code: this._appCode,
 					app_id: this._appId,
 					representation: "navigation",
-					mode: 'fastest;car',
-					alternatives: 5
+					mode: this.options.mode,
+					alternatives: alternatives
 				}, this.options.urlParameters), baseUrl);
 		},
 
