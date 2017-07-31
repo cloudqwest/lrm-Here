@@ -191,7 +191,7 @@
 				startingSearchIndex = 0;
 			}
 			for(i = startingSearchIndex; i < coordinates.length; i++) {
-				distance = haversine(coordinate, {latitude:coordinates[0], longitude:coordinates[1]});
+				distance = haversine(coordinate, {latitude:coordinates[i][0], longitude:coordinates[i][1]});
 				if(distance < closestDistance || closestIndex == -1) {
 					closestDistance = distance;
 					closestIndex = i;
