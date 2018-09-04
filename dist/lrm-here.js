@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 function corslite(url, callback, cors) {
     var sent = false;
 
@@ -94,19 +94,84 @@ function corslite(url, callback, cors) {
 if (typeof module !== 'undefined') module.exports = corslite;
 
 },{}],2:[function(require,module,exports){
+var haversine = (function () {
+  var RADII = {
+    km:    6371,
+    mile:  3960,
+    meter: 6371000,
+    nmi:   3440
+  }
+
+  // convert to radians
+  var toRad = function (num) {
+    return num * Math.PI / 180
+  }
+
+  // convert coordinates to standard format based on the passed format option
+  var convertCoordinates = function (format, coordinates) {
+    switch (format) {
+    case '[lat,lon]':
+      return { latitude: coordinates[0], longitude: coordinates[1] }
+    case '[lon,lat]':
+      return { latitude: coordinates[1], longitude: coordinates[0] }
+    case '{lon,lat}':
+      return { latitude: coordinates.lat, longitude: coordinates.lon }
+    case 'geojson':
+      return { latitude: coordinates.geometry.coordinates[1], longitude: coordinates.geometry.coordinates[0] }
+    default:
+      return coordinates
+    }
+  }
+
+  return function haversine (startCoordinates, endCoordinates, options) {
+    options   = options || {}
+
+    var R = options.unit in RADII
+      ? RADII[options.unit]
+      : RADII.km
+
+    var start = convertCoordinates(options.format, startCoordinates)
+    var end = convertCoordinates(options.format, endCoordinates)
+
+    var dLat = toRad(end.latitude - start.latitude)
+    var dLon = toRad(end.longitude - start.longitude)
+    var lat1 = toRad(start.latitude)
+    var lat2 = toRad(end.latitude)
+
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2)
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+
+    if (options.threshold) {
+      return options.threshold > (R * c)
+    }
+
+    return R * c
+  }
+
+})()
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = haversine
+}
+
+},{}],3:[function(require,module,exports){
 (function (global){
 (function() {
 	'use strict';
 
 	var L = (typeof window !== "undefined" ? window['L'] : typeof global !== "undefined" ? global['L'] : null);
 	var corslite = require('corslite');
+	var haversine = require('haversine');
 
 	L.Routing = L.Routing || {};
 
 	L.Routing.Here = L.Class.extend({
 		options: {
-			serviceUrl: 'https://route.cit.api.here.com/routing/7.2/calculateroute.json',
+			serviceUrl: 'https://route.api.here.com/routing/7.2/calculateroute.json',
 			timeout: 30 * 1000,
+			alternatives: 0,
+			mode: 'fastest;truck',
 			urlParameters: {}
 		},
 
@@ -216,7 +281,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 				for(j = 0; j < path.waypoint.length; j++) {
 					waypoint = path.waypoint[j];
 					waypoints.push(new L.LatLng(
-						waypoint.mappedPosition.latitude, 
+						waypoint.mappedPosition.latitude,
 						waypoint.mappedPosition.longitude));
 				}
 
@@ -242,7 +307,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 				i;
 			for (i = 0; i < geometry.length; i++) {
 				coord = geometry[i].split(",");
-				latlngs[i] = new L.LatLng(coord[0], coord[1]);
+				latlngs[i] = ([parseFloat(coord[0]), parseFloat(coord[1])]);
 			}
 
 			return latlngs;
@@ -251,12 +316,18 @@ if (typeof module !== 'undefined') module.exports = corslite;
 		buildRouteUrl: function(waypoints, options) {
 			var locs = [],
 				i,
+				alternatives,
 				baseUrl;
-			
+
 			for (i = 0; i < waypoints.length; i++) {
 				locs.push('waypoint' + i + '=geo!' + waypoints[i].latLng.lat + ',' + waypoints[i].latLng.lng);
 			}
-
+			if(waypoints.length > 2) {
+				alternatives = 0;
+			} else {
+				//With more than 1 waypoint, requests for alternatives are invalid
+				alternatives = this.options.alternatives;
+			}
 			baseUrl = this.options.serviceUrl + '?' + locs.join('&');
 
 			return baseUrl + L.Util.getParamString(L.extend({
@@ -264,8 +335,8 @@ if (typeof module !== 'undefined') module.exports = corslite;
 					app_code: this._appCode,
 					app_id: this._appId,
 					representation: "navigation",
-					mode: 'fastest;car',
-					alternatives: 5
+					mode: this.options.mode,
+					alternatives: alternatives
 				}, this.options.urlParameters), baseUrl);
 		},
 
@@ -274,13 +345,12 @@ if (typeof module !== 'undefined') module.exports = corslite;
 			distance,
 			closestDistance = 0,
 			closestIndex = -1,
-			coordinate = new L.LatLng(instruction.position.latitude,
-				instruction.position.longitude);
+			coordinate = instruction.position;
 			if(startingSearchIndex < 0) {
 				startingSearchIndex = 0;
 			}
 			for(i = startingSearchIndex; i < coordinates.length; i++) {
-				distance = coordinate.distanceTo(coordinates[i]);
+				distance = haversine(coordinate, {latitude:coordinates[i][0], longitude:coordinates[i][1]});
 				if(distance < closestDistance || closestIndex == -1) {
 					closestDistance = distance;
 					closestIndex = i;
@@ -299,7 +369,7 @@ if (typeof module !== 'undefined') module.exports = corslite;
 		},
 
 	});
-	
+
 	L.Routing.here = function(appId, appCode, options) {
 		return new L.Routing.Here(appId, appCode, options);
 	};
@@ -308,4 +378,4 @@ if (typeof module !== 'undefined') module.exports = corslite;
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"corslite":1}]},{},[2]);
+},{"corslite":1,"haversine":2}]},{},[3]);

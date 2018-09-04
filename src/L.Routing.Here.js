@@ -9,10 +9,10 @@
 
 	L.Routing.Here = L.Class.extend({
 		options: {
-			serviceUrl: 'https://route.cit.api.here.com/routing/7.2/calculateroute.json',
+			serviceUrl: 'https://route.api.here.com/routing/7.2/calculateroute.json',
 			timeout: 30 * 1000,
 			alternatives: 0,
-			mode: 'fastest;car',
+			mode: 'fastest;truck',
 			urlParameters: {}
 		},
 
@@ -122,7 +122,7 @@
 				for(j = 0; j < path.waypoint.length; j++) {
 					waypoint = path.waypoint[j];
 					waypoints.push(new L.LatLng(
-						waypoint.mappedPosition.latitude, 
+						waypoint.mappedPosition.latitude,
 						waypoint.mappedPosition.longitude));
 				}
 
@@ -159,7 +159,7 @@
 				i,
 				alternatives,
 				baseUrl;
-			
+
 			for (i = 0; i < waypoints.length; i++) {
 				locs.push('waypoint' + i + '=geo!' + waypoints[i].latLng.lat + ',' + waypoints[i].latLng.lng);
 			}
@@ -210,7 +210,7 @@
 		},
 
 	});
-	
+
 	L.Routing.here = function(appId, appCode, options) {
 		return new L.Routing.Here(appId, appCode, options);
 	};
